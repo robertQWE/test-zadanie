@@ -126,3 +126,58 @@ Support Service
 Используем REST API, так как оно проще для интеграции, отладки и взаимодействия с фронтендом/мобильными клиентами.
 
 
+@startuml WarmHouse Container
+
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+LAYOUT_WITH_LEGEND()
+
+title Container diagram for WarmHouse System
+
+Person(user, "Пользователь", "Пользователь умного дома")
+Person(admin, "Администратор", "Администратор умного дома")
+
+System_Boundary(warmhouse, "WarmHouse") {
+    Container(api_gateway, "API Gateway", "Nginx", "Маршрутизация запросов и безопасность")
+    Container(user_management_service, "User Management Service", "Java Spring Boot", "Управление пользователями и личным кабинетом")
+    Container(space_management_service, "Space Management Service", "Node.js", "Управление пространствами и доступом")
+    Container(device_management_service, "Device Management Service", "Python Flask", "Менеджмент устройств")
+    Container(billing_service, "Billing Service", "Ruby on Rails", "Система биллинга")
+    Container(support_service, "Support Service", "Go", "Поддержка и эксплуатация")
+    
+    ContainerDb(user_db, "User DB", "PostgreSQL", "Хранение данных пользователей")
+    ContainerDb(space_db, "Space DB", "PostgreSQL", "Хранение данных пространств")
+    ContainerDb(device_db, "Device DB", "PostgreSQL", "Хранение данных устройств")
+    ContainerDb(billing_db, "Billing DB", "PostgreSQL", "Хранение данных биллинга")
+    ContainerDb(support_db, "Support DB", "PostgreSQL", "Хранение данных поддержки")
+    
+    ContainerQueue(message_broker, "Message Broker", "Kafka", "Обмен сообщениями между сервисами")
+}
+
+System_Ext(controllers, "Внешние устройства", "Управляемые отопительные приборы")
+System_Ext(sensors, "Внешние датчики", "Датчики температуры")
+System_Ext(payment_providers, "Платежные системы", "Внешние процессинговые сервисы")
+
+Rel(user, api_gateway, "Использует")
+Rel(admin, api_gateway, "Использует")
+
+Rel(api_gateway, user_management_service, "Маршрутизация")
+Rel(api_gateway, space_management_service, "Маршрутизация")
+Rel(api_gateway, device_management_service, "Маршрутизация")
+Rel(api_gateway, billing_service, "Маршрутизация")
+Rel(api_gateway, support_service, "Маршрутизация")
+
+Rel(user_management_service, user_db, "управляет данными пользователей, включая учетные записи, права доступа")
+Rel(space_management_service, space_db, "хранит данные о пространствах (комнаты, помещения), а также их связях с пользователями")
+Rel(device_management_service, device_db, "управляет конфигурацией, метаданными и состоянием подключённых устройств")
+Rel(billing_service, billing_db, "читает/записывает информацию о транзакциях, выставленных счетах и статусах оплат")
+Rel(support_service, support_db, "логирует обращения, инциденты, запросы пользователей")
+
+Rel(controllers, message_broker, "?")
+Rel(sensors, message_broker, "?")
+Rel(device_management_service, message_broker, "асинхронный обмен событиями между сервисами")
+Rel(device_management_service, controllers, "обменивается данными с отопительными приборами, температурными датчиками и др.")
+
+Rel(billing_service, payment_providers, "вызывает внешние API для обработки платежей")
+
+@enduml
